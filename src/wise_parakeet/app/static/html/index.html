@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <link rel="stylesheet" href="static/css/styles.css">
+        <script src="static/js/index.js"></script>
+    </head>
+
+    <body>
+        <div id="main_container">
+            <h1>Spam Email Classifier Online</h1>
+
+            <fieldset class="row_container">
+                <legend>Header Info</legend>
+
+                <label>
+                    From
+                    <input type="text" name="sender_address" value="">
+                </label>
+
+                <label>
+                    Subject
+                    <input type="text" name="subject" value="">
+                </label>
+            </fieldset>
+
+            <fieldset class="row_container">
+                <legend>Contents</legend>
+                <textarea rows="10" cols="50"></textarea>
+            </fieldset>
+
+            <button type="button" id="classify_btn">
+                Classify
+            </button>
+        </div>
+    </body>
+</html>
