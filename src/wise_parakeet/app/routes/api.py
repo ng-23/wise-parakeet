@@ -4,7 +4,7 @@ Spam email classification API endpoints
 
 API_VERSION = 1
 
-from flask import Blueprint, jsonify, make_response
+from flask import Blueprint
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -18,12 +18,8 @@ def version():
     `{version: version_num}`
     '''
 
-    res = make_response(jsonify({'version':API_VERSION}))
-
-    return res
+    return {'version':API_VERSION}
 
 @bp.route('/classify', methods=['POST'])
 def classify():
-    res = make_response(jsonify({'spam':1}))
-    
-    return res
+    return {'spam':1}
