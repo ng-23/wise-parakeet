@@ -3,6 +3,6 @@ DROP TABLE IF EXISTS models;
 CREATE TABLE models (
     id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
     created_at INTEGER NOT NULL,
-    updated_at INTEGER NOT NULL,
-    codename TEXT NOT NULL
+    codename TEXT NOT NULL,
+    path_to TEXT NOT NULL
 );
