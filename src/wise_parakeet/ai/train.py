@@ -66,8 +66,14 @@ def main(args:argparse.Namespace):
     print(f'Number of emails: {len(emails_bow)}')
 
     y = emails_bow['is_spam']
-    X = emails_bow.drop('is_spam', axis='columns')
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=args.test_ratio, random_state=args.seed, stratify=y)
+    X = emails_bow.drop(['email_id','is_spam'], axis='columns')
+    X_train, X_test, y_train, y_test = train_test_split(
+        X.to_numpy(), # see https://stackoverflow.com/questions/69326639/sklearn-warning-valid-feature-names-in-version-1-0
+        y.to_numpy(), 
+        test_size=args.test_ratio, 
+        random_state=args.seed, 
+        stratify=y,
+        )
     print(f'Training emails: {len(X_train)}')
     print(f'Testing emails: {len(X_test)}')
 
@@ -80,9 +86,9 @@ def main(args:argparse.Namespace):
     y_pred = (y_pred_proba >= args.threshold).astype(int)
     print(f'Accuracy: {accuracy_score(y_test, y_pred)}')
 
-    output_dir = args.output_dir
-    if output_dir:
-        os.makedirs(output_dir, exist_ok=True)
+    created_at = int(datetime.now(tz=timezone.utc).timestamp())
+    output_dir = os.path.join(args.output_dir, str(created_at))
+    os.makedirs(output_dir, exist_ok=True)
 
     print('Saving model...')
     # see https://scikit-learn.org/stable/model_persistence.html
@@ -90,17 +96,42 @@ def main(args:argparse.Namespace):
     with open(model_pkl_pth, 'wb') as f:
         dump(model, f, protocol=5)
 
+    print('Saving vocab...')
+    vocab_pkl_pth = os.path.join(output_dir, 'vocab.pkl')
+    with open(vocab_pkl_pth, 'wb') as f:
+        dump({col:None for col in X.columns}, f, protocol=5) # use dict to maintain order
+
     if args.output_db:
         print(f'Saving to SQLite database {os.path.abspath(args.output_db)}')
         db_conn = sqlite3.connect(args.output_db, detect_types=sqlite3.PARSE_DECLTYPES)
         db_conn.row_factory = sqlite3.Row
         cursor = db_conn.cursor()
-        created_at = int(datetime.now(tz=timezone.utc).timestamp())
+
+        # save model data
         cursor = cursor.execute(
-            'INSERT INTO models (created_at,typ,threshold,path_to) VALUES (?,?,?,?)',
+            'INSERT INTO models (created_at,typ,threshold,pkl_pth) VALUES (?,?,?,?)',
             (created_at, 'mnb', args.threshold, os.path.abspath(model_pkl_pth))
-            )
+        )
         db_conn.commit()
+        model_id = cursor.lastrowid
+
+        # save vocab data
+        # TODO: ideally we could just get this from the model itself after unpickling (no need for more tables then) - is that possible?
+        cursor = cursor.execute(
+            'INSERT INTO vocabs (created_at,pkl_pth) VALUES (?,?)',
+            (created_at, os.path.abspath(vocab_pkl_pth)),
+        )
+        db_conn.commit()
+        vocab_id = cursor.lastrowid
+
+        # junction table
+        cursor = cursor.execute(
+            'INSERT INTO model_vocabs (model_id,vocab_id) VALUES (?,?)',
+            (model_id, vocab_id)
+        )
+        db_conn.commit()
+        
+        # terminate connection to sqlite database
         cursor.close()
         db_conn.close()
 
