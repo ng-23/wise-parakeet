@@ -21,6 +21,14 @@ function classifyEmailCallback() {
 }
 
 function displayClassificationResult() {
-    classifyEmail(classifyEmailCallback);
+    const emailData = {subject: null, content: null};
+
+    var subjectInput = document.getElementsByName('subject')[0]; // there should only be 1 element w/ this name
+    emailData.subject = subjectInput.value;
+
+    var contentInput = document.getElementsByName('content')[0];
+    emailData.content = contentInput.value;
+
+    classifyEmail(classifyEmailCallback, emailData);
 
 }
