@@ -4,6 +4,7 @@ import pandas as pd
 from string import punctuation
 from nltk.tokenize import word_tokenize
 from tqdm import tqdm
+from pickle import load
 
 def get_vocab_word_counts(txt:str, vocab:set[str], language:str='english'):
     '''
@@ -28,6 +29,14 @@ def get_random_rows(df:pd.DataFrame, ratio:float, seed:int=777):
         raise ValueError('Ratio must be between 0 and 1, inclusive')
     
     return df.sample(frac=ratio, random_state=seed).reset_index(drop=True)
+
+def load_from_pickle(pkl_pth:str):
+    '''
+    Load a pickled object from disk
+    '''
+
+    with open(pkl_pth, 'rb') as f:
+        return load(f)
 
 class EnronBagOfWords():
     '''
