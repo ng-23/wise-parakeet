@@ -1,8 +1,7 @@
-DROP TABLE IF EXISTS models;
-
-CREATE TABLE models (
+CREATE TABLE IF NOT EXISTS models (
     id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
     created_at INTEGER NOT NULL,
-    codename TEXT NOT NULL,
+    typ TEXT NOT NULL,
+    threshold FLOAT NOT NULL,
     path_to TEXT NOT NULL
 );
