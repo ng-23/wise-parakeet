@@ -49,9 +49,18 @@ def classify():
     cursor.close()
 
     # get email data from json request body
-    email = 'earn money fast! are you desperate for free cash? shit, who isnt? get rich quick and earn a lot of money RIGHT NOW!!!'
-    vocab_word_counts = utils.get_vocab_word_counts(email, vocab.keys(), language='english')
-    y_pred_proba = model.predict_proba(np.array(list(vocab_word_counts.values())).reshape(1,-1))[:, -1] # see https://stackoverflow.com/questions/56717542/how-to-make-prediction-with-single-sample-in-sklearn-model-predict
-    y_pred = (y_pred_proba >= model_data['threshold']).astype(int)
+    email_data = request.json
 
-    return {'spam': int(y_pred[0])}
+    # process email data
+    if 'subject' in email_data and 'content' in email_data:
+        email = (email_data['subject'] + ' ' + email_data['content']).lower()
+        vocab_word_counts = utils.get_vocab_word_counts(email, vocab.keys(), language='english')
+
+        y_pred_proba = model.predict_proba(np.array(list(vocab_word_counts.values())).reshape(1,-1))[:, -1] # see https://stackoverflow.com/questions/56717542/how-to-make-prediction-with-single-sample-in-sklearn-model-predict
+        y_pred = (y_pred_proba >= model_data['threshold']).astype(int)
+        
+        return {'spam': int(y_pred[0])}
+
+    else:
+        return {'msg': 'Error - missing subject and/or content in JSON body'}, 400
+    
